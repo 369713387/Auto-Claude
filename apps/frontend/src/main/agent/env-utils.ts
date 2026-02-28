@@ -20,6 +20,28 @@ export function isOAuthDisabled(settings: OAuthSettings): boolean {
 }
 
 /**
+ * Check if OAuth is disabled by reading settings from disk.
+ * This is a convenience function for main process code that needs to check
+ * OAuth disabled state without having to read settings separately.
+ *
+ * @param readSettingsFn - Function to read settings (injected for testability)
+ * @returns true if OAuth is disabled, false otherwise
+ */
+export function isOAuthDisabledFromSettings(
+  readSettingsFn: () => Record<string, unknown> | undefined
+): boolean {
+  // Environment variable has highest priority
+  if (process.env.DISABLE_OAUTH_AUTH === 'true') {
+    return true;
+  }
+
+  // Read settings and check oauthAllowed
+  const settings = readSettingsFn();
+  // oauthAllowed defaults to true, so only disabled if explicitly false
+  return settings?.oauthAllowed === false;
+}
+
+/**
  * Get environment variables to clear ANTHROPIC_* vars when in OAuth mode
  *
  * When switching from API Profile mode to OAuth mode, residual ANTHROPIC_*

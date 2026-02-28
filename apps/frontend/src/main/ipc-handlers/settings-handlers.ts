@@ -22,6 +22,7 @@ import { setUpdateChannel, setUpdateChannelWithDowngradeCheck } from '../app-upd
 import { getSettingsPath, readSettingsFile } from '../settings-utils';
 import { configureTools, getToolPath, getToolInfo, isPathFromWrongPlatform, preWarmToolCache } from '../cli-tool-manager';
 import { parseEnvFile } from './utils';
+import { isOAuthDisabledFromSettings } from '../agent/env-utils';
 
 const settingsPath = getSettingsPath();
 
@@ -356,6 +357,30 @@ export function registerSettingsHandlers(
         return {
           success: true,
           data: { hasCompletedOnboarding: false }
+        };
+      }
+    }
+  );
+
+  /**
+   * Check if OAuth authentication is disabled.
+   * This considers both the DISABLE_OAUTH_AUTH environment variable and
+   * the oauthAllowed setting from the settings store.
+   */
+  ipcMain.handle(
+    IPC_CHANNELS.SETTINGS_GET_OAUTH_DISABLED,
+    async (): Promise<IPCResult<{ isOAuthDisabled: boolean }>> => {
+      try {
+        const disabled = isOAuthDisabledFromSettings(readSettingsFile);
+        return {
+          success: true,
+          data: { isOAuthDisabled: disabled }
+        };
+      } catch (error) {
+        console.error('[SETTINGS_GET_OAUTH_DISABLED] Error checking OAuth disabled state:', error);
+        return {
+          success: true,
+          data: { isOAuthDisabled: false }  // Default to OAuth enabled on error
         };
       }
     }
