@@ -39,6 +39,9 @@ export interface SettingsAPI {
 
   // Spell check
   setSpellCheckLanguages: (language: string) => Promise<IPCResult<{ success: boolean }>>;
+
+  // OAuth settings
+  getOAuthDisabled: () => Promise<IPCResult<{ isOAuthDisabled: boolean }>>;
 }
 
 export const createSettingsAPI = (): SettingsAPI => ({
@@ -90,5 +93,9 @@ export const createSettingsAPI = (): SettingsAPI => ({
 
   // Spell check - sync spell checker language with app language
   setSpellCheckLanguages: (language: string): Promise<IPCResult<{ success: boolean }>> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SPELLCHECK_SET_LANGUAGES, language)
+    ipcRenderer.invoke(IPC_CHANNELS.SPELLCHECK_SET_LANGUAGES, language),
+
+  // OAuth settings - check if OAuth is disabled (env var override or settings)
+  getOAuthDisabled: (): Promise<IPCResult<{ isOAuthDisabled: boolean }>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET_OAUTH_DISABLED)
 });

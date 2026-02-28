@@ -125,7 +125,7 @@ describe('runPythonSubprocess', () => {
       const customEnv = {
         PATH: '/custom/path',
         PYTHONPATH: '/custom/pythonpath',
-        ANTHROPIC_AUTH_TOKEN: 'custom-token',
+        ANTHROPIC_API_KEY: 'custom-token',
       };
       vi.mocked(parsePythonCommand).mockReturnValue(['python', []]);
 

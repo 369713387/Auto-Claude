@@ -11,7 +11,7 @@ import { getToolInfo } from '../../../cli-tool-manager';
  *
  * Environment variable precedence (lowest to highest):
  * 1. pythonEnv - Python environment including PYTHONPATH for bundled packages (fixes #139)
- * 2. apiProfileEnv - Custom Anthropic-compatible API profile (ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN)
+ * 2. apiProfileEnv - Custom Anthropic-compatible API profile (ANTHROPIC_BASE_URL, ANTHROPIC_API_KEY)
  * 3. oauthModeClearVars - Clears stale ANTHROPIC_* vars when in OAuth mode
  * 4. profileEnv - Claude OAuth token from profile manager (CLAUDE_CODE_OAUTH_TOKEN)
  * 5. githubEnv - Fresh GitHub token from gh CLI (GITHUB_TOKEN) - fetched on each call to reflect account changes

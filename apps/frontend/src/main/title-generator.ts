@@ -231,7 +231,7 @@ export class TitleGenerator extends EventEmitter {
           ...getSentryEnvForSubprocess(), // Sentry config for subprocess error tracking
           ...autoBuildEnv,
           ...profileEnv, // Claude OAuth profile - includes CLAUDE_CONFIG_DIR and clears CLAUDE_CODE_OAUTH_TOKEN
-          ...apiProfileEnv, // API profile (ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL, etc.)
+          ...apiProfileEnv, // API profile (ANTHROPIC_API_KEY, ANTHROPIC_BASE_URL, etc.)
           ...oauthModeClearVars, // Clear stale ANTHROPIC_* vars when in OAuth mode
           PYTHONUNBUFFERED: '1', // Ensure stdout isn't buffered (critical for reading output before kill/timeout)
         }

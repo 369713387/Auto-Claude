@@ -119,7 +119,7 @@ export function runPythonSubprocess<T = unknown>(
   // Use the environment provided by the caller (from getRunnerEnv()).
   // getRunnerEnv() provides:
   // - pythonEnvManager.getPythonEnv() which includes PYTHONPATH for bundled packages (fixes #139)
-  // - API profile environment (ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN)
+  // - API profile environment (ANTHROPIC_BASE_URL, ANTHROPIC_API_KEY)
   // - OAuth mode clearing vars
   // - Claude OAuth token (CLAUDE_CODE_OAUTH_TOKEN)
   //
