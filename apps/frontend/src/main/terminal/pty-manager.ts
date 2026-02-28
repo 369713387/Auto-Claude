@@ -148,7 +148,7 @@ export function spawnPtyProcess(
   cwd: string,
   cols: number,
   rows: number,
-  profileEnv?: Record<string, string>
+  profileEnv?: Record<string, string | undefined>
 ): SpawnPtyResult {
   // Read user's preferred terminal setting
   const settings = readSettingsFile();
@@ -171,28 +171,81 @@ export function spawnPtyProcess(
   debugLog('[PtyManager] Spawning shell:', shell, shellArgs, '(preferred:', preferredTerminal || 'system', ', shellType:', shellType, ')');
   debugLog('[PtyManager] PTY dimensions requested - cols:', cols, 'rows:', rows, 'cwd:', cwd || os.homedir());
 
-  // Create a clean environment without DEBUG to prevent Claude Code from
-  // enabling debug mode when the Electron app is run in development mode.
-  // Also remove ANTHROPIC_API_KEY to ensure Claude Code uses OAuth tokens
-  // (CLAUDE_CODE_OAUTH_TOKEN from profileEnv) instead of API keys that may
-  // be present in the shell environment. Without this, Claude Code would
-  // show "Claude API" instead of "Claude Max" when ANTHROPIC_API_KEY is set.
-  const { DEBUG: _DEBUG, ANTHROPIC_API_KEY: _ANTHROPIC_API_KEY, ...cleanEnv } = process.env;
+  // Debug: Log profileEnv contents to verify ANTHROPIC_BASE_URL is passed
+  if (profileEnv && Object.keys(profileEnv).length > 0) {
+    debugLog('[PtyManager] profileEnv keys:', Object.keys(profileEnv));
+  }
+
+  // Determine auth mode from profileEnv
+  // Note: profileEnv is already processed by buildAuthEnv() in terminal-lifecycle.ts,
+  // but we also handle direct calls here for defensive programming
+  const hasApiKey = !!profileEnv?.ANTHROPIC_API_KEY;
+  const hasOAuth = !!profileEnv?.CLAUDE_CODE_OAUTH_TOKEN;
+  const isApiKeyMode = hasApiKey;
+  const isOAuthMode = !hasApiKey && hasOAuth;
+
+  // Clean profileEnv to remove conflicting credentials (defensive cleanup)
+  // This prevents "Both a token and an API key are set" warnings
+  let cleanedProfileEnv = profileEnv || {};
+  if (isApiKeyMode && cleanedProfileEnv.CLAUDE_CODE_OAUTH_TOKEN) {
+    debugLog('[PtyManager] Removing CLAUDE_CODE_OAUTH_TOKEN (API key mode)');
+    const { CLAUDE_CODE_OAUTH_TOKEN, ...rest } = cleanedProfileEnv;
+    cleanedProfileEnv = rest;
+  }
+  if (isOAuthMode && cleanedProfileEnv.ANTHROPIC_API_KEY) {
+    debugLog('[PtyManager] Removing API credentials (OAuth mode)');
+    const { ANTHROPIC_API_KEY, ...rest } = cleanedProfileEnv;
+    cleanedProfileEnv = rest;
+  }
+  // Always clear deprecated ANTHROPIC_AUTH_TOKEN if present
+  if (cleanedProfileEnv.ANTHROPIC_AUTH_TOKEN) {
+    debugLog('[PtyManager] Removing deprecated ANTHROPIC_AUTH_TOKEN');
+    const { ANTHROPIC_AUTH_TOKEN, ...rest } = cleanedProfileEnv;
+    cleanedProfileEnv = rest;
+  }
+
+  // Create a clean environment without DEBUG and other problematic vars
+  const envToRemove = {
+    DEBUG: undefined,
+    ANTHROPIC_AUTH_TOKEN: undefined, // Deprecated variable
+    CLAUDECODE: undefined, // Prevent nested session detection
+  };
+  const cleanEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !(key in envToRemove))
+  );
+
+  debugLog('[PtyManager] Auth mode:', isApiKeyMode ? 'API_KEY' : (isOAuthMode ? 'OAUTH' : 'NONE'));
+
+  // Debug: Log ANTHROPIC_* vars that will be passed to PTY (without exposing secret values)
+  const anthropicVars = Object.keys(cleanedProfileEnv).filter(k => k.startsWith('ANTHROPIC'));
+  if (anthropicVars.length > 0) {
+    debugLog('[PtyManager] ANTHROPIC_* vars being passed:', anthropicVars);
+    debugLog('[PtyManager] ANTHROPIC_BASE_URL:', cleanedProfileEnv.ANTHROPIC_BASE_URL || '(not set)');
+    debugLog('[PtyManager] ANTHROPIC_API_KEY:', cleanedProfileEnv.ANTHROPIC_API_KEY ? `(set, length: ${cleanedProfileEnv.ANTHROPIC_API_KEY.length})` : '(not set)');
+  } else {
+    debugLog('[PtyManager] WARNING: No ANTHROPIC_* vars in cleanedProfileEnv!');
+  }
+
+  // Filter out undefined values from environment before passing to pty.spawn
+  // pty.spawn requires Record<string, string>, not Record<string, string | undefined>
+  const finalEnv: Record<string, string> = {
+    ...cleanEnv,
+    ...Object.fromEntries(
+      Object.entries(cleanedProfileEnv).filter(([_, v]) => v !== undefined)
+    ) as Record<string, string>,
+    TERM: 'xterm-256color',
+    COLORTERM: 'truecolor',
+    // Suppress zsh's partial line indicator (%) that appears when output
+    // doesn't end with a newline. This prevents rendering artifacts in the terminal.
+    PROMPT_EOL_MARK: '',
+  };
 
   const ptyProcess = pty.spawn(shell, shellArgs, {
     name: 'xterm-256color',
     cols,
     rows,
     cwd: cwd || os.homedir(),
-    env: {
-      ...cleanEnv,
-      ...profileEnv,
-      TERM: 'xterm-256color',
-      COLORTERM: 'truecolor',
-      // Suppress zsh's partial line indicator (%) that appears when output
-      // doesn't end with a newline. This prevents rendering artifacts in the terminal.
-      PROMPT_EOL_MARK: '',
-    },
+    env: finalEnv,
   });
 
   return { pty: ptyProcess, shellType };
