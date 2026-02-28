@@ -3,8 +3,8 @@
  * Tests OAuth mode environment variable clearing functionality
  */
 
-import { describe, it, expect } from 'vitest';
-import { getOAuthModeClearVars, normalizeEnvPathKey, mergePythonEnvPath } from './env-utils';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { getOAuthModeClearVars, normalizeEnvPathKey, mergePythonEnvPath, isOAuthDisabled } from './env-utils';
 
 describe('getOAuthModeClearVars', () => {
   describe('OAuth mode (no active API profile)', () => {
@@ -39,7 +39,7 @@ describe('getOAuthModeClearVars', () => {
   describe('API Profile mode (active profile)', () => {
     it('should return empty object when apiProfileEnv has values', () => {
       const apiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-active-profile',
+        ANTHROPIC_API_KEY: 'sk-active-profile',
         ANTHROPIC_BASE_URL: 'https://custom.api.com'
       };
 
@@ -50,7 +50,7 @@ describe('getOAuthModeClearVars', () => {
 
     it('should NOT clear vars when API profile is active', () => {
       const apiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-test',
+        ANTHROPIC_API_KEY: 'sk-test',
         ANTHROPIC_BASE_URL: 'https://test.com',
         ANTHROPIC_MODEL: 'claude-3-opus'
       };
@@ -63,7 +63,7 @@ describe('getOAuthModeClearVars', () => {
 
     it('should detect non-empty profile even with single property', () => {
       const apiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-minimal'
+        ANTHROPIC_API_KEY: 'sk-minimal'
       };
 
       const result = getOAuthModeClearVars(apiProfileEnv);
@@ -293,5 +293,42 @@ describe('mergePythonEnvPath - Windows PATH merge logic (#1661)', () => {
     expect(mergedPythonEnv.PATH).toBeUndefined();
     expect(mergedPythonEnv.PYTHONPATH).toBe('/site-packages');
     expect(env.PATH).toBe('C:\\npm;C:\\homebrew');
+  });
+});
+
+describe('isOAuthDisabled', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false by default when no env var and no settings', () => {
+    delete process.env.DISABLE_OAUTH_AUTH;
+    expect(isOAuthDisabled({})).toBe(false);
+  });
+
+  it('returns true when settings.oauthAllowed is false', () => {
+    delete process.env.DISABLE_OAUTH_AUTH;
+    expect(isOAuthDisabled({ oauthAllowed: false })).toBe(true);
+  });
+
+  it('returns true when DISABLE_OAUTH_AUTH env var is "true"', () => {
+    process.env.DISABLE_OAUTH_AUTH = 'true';
+    expect(isOAuthDisabled({ oauthAllowed: true })).toBe(true);
+  });
+
+  it('env var overrides settings', () => {
+    process.env.DISABLE_OAUTH_AUTH = 'true';
+    expect(isOAuthDisabled({ oauthAllowed: true })).toBe(true);
+  });
+
+  it('returns false when DISABLE_OAUTH_AUTH is "false"', () => {
+    process.env.DISABLE_OAUTH_AUTH = 'false';
+    expect(isOAuthDisabled({})).toBe(false);
   });
 });
