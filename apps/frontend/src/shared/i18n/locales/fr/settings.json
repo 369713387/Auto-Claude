@@ -901,5 +901,18 @@
       "label": "Remplisseur de modèle PR",
       "description": "Remplit intelligemment les modèles de PR GitHub à partir des changements de code"
     }
+  },
+  "auth": {
+    "oauthAllowed": "Autoriser l'authentification OAuth",
+    "oauthAllowedDescription": "Lorsque désactivé, seuls les Profils API peuvent être utilisés pour l'authentification. Adapté aux environnements nécessitant un contrôle strict.",
+    "oauthDisabledWarning": "Veuillez vous assurer qu'un Profil API valide est configuré avant de désactiver OAuth.",
+    "envVarOverride": "Remplacé par la variable d'environnement DISABLE_OAUTH_AUTH"
+  },
+  "errors": {
+    "oauthDisabledNoApiProfile": {
+      "title": "Erreur de configuration d'authentification",
+      "message": "L'authentification OAuth est désactivée, mais aucun Profil API valide n'est configuré.",
+      "action": "Veuillez configurer un Profil API dans les Paramètres avant d'utiliser les fonctionnalités Agent."
+    }
   }
 }

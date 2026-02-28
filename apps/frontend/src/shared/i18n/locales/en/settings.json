@@ -901,5 +901,18 @@
       "label": "PR Template Filler",
       "description": "AI-fills GitHub PR templates from code changes"
     }
+  },
+  "auth": {
+    "oauthAllowed": "Allow OAuth Authentication",
+    "oauthAllowedDescription": "When disabled, only API Profiles can be used for authentication. Suitable for enterprise environments requiring strict control.",
+    "oauthDisabledWarning": "Please ensure a valid API Profile is configured before disabling OAuth.",
+    "envVarOverride": "Overridden by environment variable DISABLE_OAUTH_AUTH"
+  },
+  "errors": {
+    "oauthDisabledNoApiProfile": {
+      "title": "Authentication Configuration Error",
+      "message": "OAuth authentication is disabled, but no valid API Profile is configured.",
+      "action": "Please configure an API Profile in Settings before using Agent features."
+    }
   }
 }
