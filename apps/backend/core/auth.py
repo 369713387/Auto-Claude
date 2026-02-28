@@ -34,20 +34,19 @@ else:
         secretstorage = None  # type: ignore[assignment]
 
 # Priority order for auth token resolution
-# NOTE: We intentionally do NOT fall back to ANTHROPIC_API_KEY.
-# Auto Claude is designed to use Claude Code OAuth tokens only.
+# NOTE: ANTHROPIC_API_KEY is used for custom API endpoints (Zhipu, proxies, etc.)
+# Auto Claude primarily uses Claude Code OAuth tokens for authentication.
 # This prevents silent billing to user's API credits when OAuth fails.
 AUTH_TOKEN_ENV_VARS = [
     "CLAUDE_CODE_OAUTH_TOKEN",  # OAuth token from Claude Code CLI
-    "ANTHROPIC_AUTH_TOKEN",  # CCR/proxy token (for enterprise setups)
+    "ANTHROPIC_API_KEY",        # API key for custom endpoints (Zhipu, proxies, etc.)
 ]
 
 # Environment variables to pass through to SDK subprocess
-# NOTE: ANTHROPIC_API_KEY is intentionally excluded to prevent silent API billing
 SDK_ENV_VARS = [
     # API endpoint configuration
     "ANTHROPIC_BASE_URL",
-    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_API_KEY",
     # Model overrides (from API Profile custom model mappings)
     "ANTHROPIC_MODEL",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL",
@@ -681,12 +680,9 @@ def get_auth_token(config_dir: str | None = None) -> str | None:
 
     Checks multiple sources in priority order:
     1. CLAUDE_CODE_OAUTH_TOKEN (env var)
-    2. ANTHROPIC_AUTH_TOKEN (CCR/proxy env var for enterprise setups)
+    2. ANTHROPIC_API_KEY (custom API endpoint env var for Zhipu, proxies, etc.)
     3. Custom config directory (config_dir param or CLAUDE_CONFIG_DIR env var)
     4. System credential store (macOS Keychain, Windows Credential Manager, Linux Secret Service)
-
-    NOTE: ANTHROPIC_API_KEY is intentionally NOT supported to prevent
-    silent billing to user's API credits when OAuth is misconfigured.
 
     If the token has an "enc:" prefix (encrypted format), it will be automatically
     decrypted before being returned.
@@ -949,6 +945,9 @@ def get_sdk_env_vars() -> dict[str, str]:
 
     On Windows, auto-detects CLAUDE_CODE_GIT_BASH_PATH if not already set.
 
+    When ANTHROPIC_BASE_URL is set (API profile mode), explicitly clears
+    CLAUDE_CODE_OAUTH_TOKEN to prevent auth conflict warnings from the SDK.
+
     Returns:
         Dict of env var name -> value for non-empty vars
     """
@@ -975,6 +974,18 @@ def get_sdk_env_vars() -> dict[str, str]:
     # The empty string ensures Python doesn't add any extra paths to sys.path.
     env["PYTHONPATH"] = ""
 
+    # When using API profile mode (ANTHROPIC_BASE_URL is set), explicitly
+    # clear CLAUDE_CODE_OAUTH_TOKEN to prevent auth conflict warnings.
+    # Also clear ANTHROPIC_AUTH_TOKEN to prevent conflicts when migrating
+    # from the old variable name to ANTHROPIC_API_KEY.
+    # The SDK gives OAuth priority over API keys when both are present,
+    # causing warnings like "Both a token and an API key are set".
+    # Setting them to empty strings ensures the SDK subprocess doesn't inherit
+    # conflicting tokens from the parent process environment.
+    if os.environ.get("ANTHROPIC_BASE_URL"):
+        env["CLAUDE_CODE_OAUTH_TOKEN"] = ""
+        env["ANTHROPIC_AUTH_TOKEN"] = ""
+
     return env
 
 
@@ -983,7 +994,7 @@ def configure_sdk_authentication(config_dir: str | None = None) -> None:
     Configure SDK authentication based on environment variables.
 
     Supports two authentication modes:
-    - API Profile mode (ANTHROPIC_BASE_URL set): uses ANTHROPIC_AUTH_TOKEN
+    - API Profile mode (ANTHROPIC_BASE_URL set): uses ANTHROPIC_API_KEY
     - OAuth mode (default): uses CLAUDE_CODE_OAUTH_TOKEN
 
     In API profile mode, explicitly removes CLAUDE_CODE_OAUTH_TOKEN from the
@@ -996,7 +1007,7 @@ def configure_sdk_authentication(config_dir: str | None = None) -> None:
 
     Raises:
         ValueError: If required tokens are missing for the active mode.
-                   - API profile mode: requires ANTHROPIC_AUTH_TOKEN
+                   - API profile mode: requires ANTHROPIC_API_KEY
                    - OAuth mode: requires CLAUDE_CODE_OAUTH_TOKEN (from Keychain or env)
     """
     _debug = os.environ.get("DEBUG", "").lower() in ("true", "1")
@@ -1012,13 +1023,13 @@ def configure_sdk_authentication(config_dir: str | None = None) -> None:
         )
 
     if api_profile_mode:
-        # API profile mode: ensure ANTHROPIC_AUTH_TOKEN is present
-        if not os.environ.get("ANTHROPIC_AUTH_TOKEN"):
+        # API profile mode: ensure ANTHROPIC_API_KEY is present
+        if not os.environ.get("ANTHROPIC_API_KEY"):
             raise ValueError(
                 "API profile mode active (ANTHROPIC_BASE_URL is set) "
-                "but ANTHROPIC_AUTH_TOKEN is not set"
+                "but ANTHROPIC_API_KEY is not set"
             )
-        # Explicitly remove CLAUDE_CODE_OAUTH_TOKEN so SDK uses ANTHROPIC_AUTH_TOKEN
+        # Explicitly remove CLAUDE_CODE_OAUTH_TOKEN so SDK uses ANTHROPIC_API_KEY
         # SDK gives OAuth priority over API keys when both are present
         os.environ.pop("CLAUDE_CODE_OAUTH_TOKEN", None)
         logger.info("Using API profile authentication")
@@ -1238,3 +1249,61 @@ def ensure_authenticated() -> str:
         "  3. Press Enter to open browser\n"
         "  4. Complete OAuth login in browser"
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Configuration Migration Detection
+# ─────────────────────────────────────────────────────────────────────────────
+
+def check_legacy_config() -> None:
+    """
+    Check for legacy/deprecated configuration and warn the user.
+
+    This should be called during application startup to provide early feedback
+    about configuration issues that need to be migrated.
+
+    Currently detects:
+    - ANTHROPIC_AUTH_TOKEN (deprecated, use ANTHROPIC_API_KEY instead)
+    - Mixed auth configuration (both OAuth token and API key set)
+    """
+    warnings = []
+
+    # Check for deprecated ANTHROPIC_AUTH_TOKEN
+    if os.environ.get("ANTHROPIC_AUTH_TOKEN"):
+        warnings.append(
+            "⚠️  ANTHROPIC_AUTH_TOKEN is deprecated\n"
+            "   Please use ANTHROPIC_API_KEY instead."
+        )
+
+    # Check for mixed auth configuration
+    has_oauth = bool(os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"))
+    has_api_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
+
+    if has_oauth and has_api_key:
+        warnings.append(
+            "⚠️  Mixed authentication configuration detected\n"
+            "   Both CLAUDE_CODE_OAUTH_TOKEN and ANTHROPIC_API_KEY are set.\n"
+            "   This is expected if you use both OAuth accounts and API profiles.\n"
+            "   No action needed unless you're experiencing auth issues."
+        )
+
+    # Print warnings if any were detected
+    if warnings:
+        print("")
+        print("╔" + "═" * 68 + "╗")
+        print("║" + " " * 10 + "Auto Claude - Configuration Migration Notice" + " " * 10 + "║")
+        print("╚" + "═" * 68 + "╝")
+        print("")
+
+        for warning in warnings:
+            print(warning)
+            print("")
+
+        print("For detailed migration instructions, see:")
+        print("https://code.claude.com/docs/configuration")
+        print("")
+
+
+# Note: check_legacy_config() is NOT called automatically on import.
+# Call it explicitly from CLI entry points (run.py) where user-facing warnings are appropriate.
+# This avoids side effects during import and prevents warnings in multi-account scenarios.
