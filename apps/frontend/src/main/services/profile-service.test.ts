@@ -542,7 +542,7 @@ describe('profile-service', () => {
 
       expect(result).toEqual({
         ANTHROPIC_BASE_URL: 'https://api.custom.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678',
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929',
         ANTHROPIC_DEFAULT_HAIKU_MODEL: 'claude-haiku-4-5-20251001',
         ANTHROPIC_DEFAULT_SONNET_MODEL: 'claude-sonnet-4-5-20250929',
@@ -583,7 +583,7 @@ describe('profile-service', () => {
       expect(result).not.toHaveProperty('ANTHROPIC_DEFAULT_SONNET_MODEL');
       // Non-empty values should be present
       expect(result).toEqual({
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678',
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929'
       });
     });
@@ -612,7 +612,7 @@ describe('profile-service', () => {
 
       expect(result).toEqual({
         ANTHROPIC_BASE_URL: 'https://api.example.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678'
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678'
       });
       expect(result).not.toHaveProperty('ANTHROPIC_MODEL');
       expect(result).not.toHaveProperty('ANTHROPIC_DEFAULT_HAIKU_MODEL');
@@ -647,7 +647,7 @@ describe('profile-service', () => {
 
       expect(result).toEqual({
         ANTHROPIC_BASE_URL: 'https://api.example.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678',
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929'
       });
       expect(result).not.toHaveProperty('ANTHROPIC_DEFAULT_HAIKU_MODEL');
@@ -695,7 +695,7 @@ describe('profile-service', () => {
 
       expect(result).toEqual({
         ANTHROPIC_BASE_URL: 'https://api2.example.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-key-two-12345678',
+        ANTHROPIC_API_KEY: 'sk-key-two-12345678',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929'
       });
     });
@@ -749,7 +749,7 @@ describe('profile-service', () => {
       // Whitespace should be trimmed, not filtered out
       expect(result).toEqual({
         ANTHROPIC_BASE_URL: 'https://api.example.com', // Trimmed
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678'
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678'
       });
     });
 
@@ -781,7 +781,7 @@ describe('profile-service', () => {
       expect(result).not.toHaveProperty('ANTHROPIC_BASE_URL');
       expect(result).not.toHaveProperty('ANTHROPIC_MODEL');
       expect(result).toEqual({
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678'
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678'
       });
     });
   });

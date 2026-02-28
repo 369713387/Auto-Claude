@@ -64,31 +64,31 @@ describe('getRunnerEnv', () => {
 
   it('merges Python env with API profile env and OAuth clear vars', async () => {
     mockGetAPIProfileEnv.mockResolvedValue({
-      ANTHROPIC_AUTH_TOKEN: 'token',
+      ANTHROPIC_API_KEY: 'token',
       ANTHROPIC_BASE_URL: 'https://api.example.com',
     });
     mockGetOAuthModeClearVars.mockReturnValue({
-      ANTHROPIC_AUTH_TOKEN: '',
+      ANTHROPIC_API_KEY: '',
     });
 
     const result = await getRunnerEnv();
 
     expect(mockGetOAuthModeClearVars).toHaveBeenCalledWith({
-      ANTHROPIC_AUTH_TOKEN: 'token',
+      ANTHROPIC_API_KEY: 'token',
       ANTHROPIC_BASE_URL: 'https://api.example.com',
     });
     // Python env is included first, then overridden by OAuth clear vars
     expect(result).toMatchObject({
       PYTHONPATH: '/bundled/site-packages',
       PYTHONDONTWRITEBYTECODE: '1',
-      ANTHROPIC_AUTH_TOKEN: '',
+      ANTHROPIC_API_KEY: '',
       ANTHROPIC_BASE_URL: 'https://api.example.com',
     });
   });
 
   it('includes extra env values with highest precedence', async () => {
     mockGetAPIProfileEnv.mockResolvedValue({
-      ANTHROPIC_AUTH_TOKEN: 'token',
+      ANTHROPIC_API_KEY: 'token',
     });
     mockGetOAuthModeClearVars.mockReturnValue({});
 
@@ -96,7 +96,7 @@ describe('getRunnerEnv', () => {
 
     expect(result).toMatchObject({
       PYTHONPATH: '/bundled/site-packages',
-      ANTHROPIC_AUTH_TOKEN: 'token',
+      ANTHROPIC_API_KEY: 'token',
       USE_CLAUDE_MD: 'true',
     });
   });
