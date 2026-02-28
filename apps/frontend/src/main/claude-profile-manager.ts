@@ -57,6 +57,8 @@ import {
   getEmailFromConfigDir
 } from './claude-profile/profile-utils';
 import { debugLog } from '../shared/utils/debug-logger';
+import { isOAuthDisabledFromSettings } from './agent/env-utils';
+import { readSettingsFile } from './settings-utils';
 
 /**
  * Manages Claude Code profiles for multi-account support.
@@ -87,8 +89,6 @@ export class ClaudeProfileManager {
       return;
     }
 
-    console.log('[ClaudeProfileManager] Starting initialization...');
-
     // Ensure directory exists (async) - mkdir with recursive:true is idempotent
     await mkdir(this.configDir, { recursive: true });
 
@@ -110,7 +110,6 @@ export class ClaudeProfileManager {
     this.populateSubscriptionMetadata();
 
     this.initialized = true;
-    console.log('[ClaudeProfileManager] Initialization complete');
   }
 
   /**
@@ -539,6 +538,12 @@ export class ClaudeProfileManager {
    * See: docs/LONG_LIVED_AUTH_PLAN.md for full context.
    */
   getActiveProfileEnv(): Record<string, string> {
+    // Check if OAuth is disabled - if so, don't inject OAuth env vars
+    // This forces the system to use API profiles instead
+    if (isOAuthDisabledFromSettings(readSettingsFile)) {
+      return {};
+    }
+
     const profile = this.getActiveProfile();
     const env: Record<string, string> = {};
 
