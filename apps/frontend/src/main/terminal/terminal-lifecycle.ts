@@ -19,6 +19,9 @@ import { isWindows } from '../platform';
 import { debugLog, debugError } from '../../shared/utils/debug-logger';
 import { safeSendToRenderer } from '../ipc-handlers/utils';
 import { getClaudeCodeEnv } from '../claude-code-settings';
+import { isOAuthDisabledFromSettings } from '../agent/env-utils';
+import { readSettingsFile } from '../settings-utils';
+import { getAPIProfileEnv } from '../services/profile-service';
 
 /**
  * Options for terminal restoration
@@ -52,6 +55,21 @@ export async function createTerminal(
   if (terminals.has(id)) {
     debugLog('[TerminalLifecycle] Terminal already exists, returning success:', id);
     return { success: true };
+  }
+
+  // Check OAuth disabled validation (skip for auth terminals)
+  if (!skipOAuthToken) {
+    const oauthDisabled = isOAuthDisabledFromSettings(readSettingsFile);
+    if (oauthDisabled) {
+      const apiProfileEnv = await getAPIProfileEnv();
+      if (!apiProfileEnv.ANTHROPIC_API_KEY) {
+        return {
+          success: false,
+          error: 'OAUTH_DISABLED_NO_API_PROFILE',
+          message: 'OAuth authentication is disabled, but no API Profile is configured.'
+        };
+      }
+    }
   }
 
   // Clear any pendingDelete for this terminal ID. This handles the case where
