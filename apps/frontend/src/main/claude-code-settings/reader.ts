@@ -239,7 +239,16 @@ export function readUserGlobalSettings(): ClaudeCodeSettings | undefined {
   const configDir = getUserConfigDir();
   const settingsPath = path.join(configDir, 'settings.json');
   debugLog(`${LOG_PREFIX} Reading user global settings:`, settingsPath);
-  return readJsonFile(settingsPath);
+  debugLog(`${LOG_PREFIX} Config dir used:`, configDir);
+  const result = readJsonFile(settingsPath);
+  if (result) {
+    debugLog(`${LOG_PREFIX} Settings loaded, has env:`, !!result.env);
+    debugLog(`${LOG_PREFIX} Env keys:`, result.env ? Object.keys(result.env) : 'no env');
+    // Note: Don't log presence of API keys to avoid leaking secret configuration info
+  } else {
+    debugLog(`${LOG_PREFIX} No settings loaded from:`, settingsPath);
+  }
+  return result;
 }
 
 /**
