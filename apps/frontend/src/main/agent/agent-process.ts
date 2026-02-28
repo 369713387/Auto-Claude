@@ -22,7 +22,7 @@ import { pythonEnvManager, getConfiguredPythonPath } from '../python-env-manager
 import { buildMemoryEnvVars } from '../memory-env-builder';
 import { readSettingsFile } from '../settings-utils';
 import type { AppSettings } from '../../shared/types/settings';
-import { getOAuthModeClearVars, normalizeEnvPathKey, mergePythonEnvPath } from './env-utils';
+import { getOAuthModeClearVars, normalizeEnvPathKey, mergePythonEnvPath, isOAuthDisabledFromSettings } from './env-utils';
 import { getAugmentedEnv } from '../env-utils';
 import { getToolInfo, getClaudeCliPathForSdk } from '../cli-tool-manager';
 import { killProcessGracefully, isWindows, getPathDelimiter } from '../platform';
@@ -633,6 +633,37 @@ export class AgentProcessManager {
   ): Promise<void> {
     const isSpecRunner = processType === 'spec-creation';
     this.killProcess(taskId);
+
+    // Check OAuth disabled validation - must have API profile configured
+    const oauthDisabled = isOAuthDisabledFromSettings(readSettingsFile);
+    if (oauthDisabled) {
+      try {
+        const apiProfileEnv = await getAPIProfileEnv();
+        if (!apiProfileEnv.ANTHROPIC_API_KEY) {
+          const errorMessage = 'OAuth authentication is disabled, but no API Profile is configured.';
+          this.emitter.emit('error', {
+            type: 'OAUTH_DISABLED_NO_API_PROFILE',
+            message: errorMessage,
+            title: 'Authentication Configuration Error'
+          }, taskId, projectId);
+          throw new Error(errorMessage);
+        }
+      } catch (error) {
+        // If getAPIProfileEnv itself failed, re-throw if it's our error
+        if (error instanceof Error && error.message.includes('OAuth authentication is disabled')) {
+          throw error;
+        }
+        // Otherwise, log and throw a generic error
+        console.error('[AgentProcess] Failed to get API profile env for OAuth disabled check:', error);
+        const errorMessage = 'OAuth authentication is disabled, but failed to verify API Profile configuration.';
+        this.emitter.emit('error', {
+          type: 'OAUTH_DISABLED_NO_API_PROFILE',
+          message: errorMessage,
+          title: 'Authentication Configuration Error'
+        }, taskId, projectId);
+        throw new Error(errorMessage);
+      }
+    }
 
     const spawnId = this.state.generateSpawnId();
 
