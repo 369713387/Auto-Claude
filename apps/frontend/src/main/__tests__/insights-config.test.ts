@@ -41,7 +41,7 @@ describe('InsightsConfig', () => {
     process.env = { ...originalEnv, TEST_ENV: 'ok' };
     mockGetApiProfileEnv.mockResolvedValue({
       ANTHROPIC_BASE_URL: 'https://api.z.ai',
-      ANTHROPIC_AUTH_TOKEN: 'key'
+      ANTHROPIC_API_KEY: 'key'
     });
     mockGetPythonEnv.mockReturnValue({ PYTHONPATH: '/site-packages' });
   });
@@ -63,7 +63,7 @@ describe('InsightsConfig', () => {
     expect(env.CUSTOM_ENV).toBe('1');
     expect(env.CLAUDE_CODE_OAUTH_TOKEN).toBe('oauth-token');
     expect(env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai');
-    expect(env.ANTHROPIC_AUTH_TOKEN).toBe('key');
+    expect(env.ANTHROPIC_API_KEY).toBe('key');
     expect(env.PYTHONPATH).toBe(
       [path.resolve('/site-packages'), path.resolve('/backend')].join(path.delimiter)
     );
@@ -74,13 +74,13 @@ describe('InsightsConfig', () => {
     mockGetApiProfileEnv.mockResolvedValue({});
     process.env = {
       ...originalEnv,
-      ANTHROPIC_AUTH_TOKEN: 'stale-token',
+      ANTHROPIC_API_KEY: 'stale-token',
       ANTHROPIC_BASE_URL: 'https://stale.example'
     };
 
     const env = await config.getProcessEnv();
 
-    expect(env.ANTHROPIC_AUTH_TOKEN).toBe('');
+    expect(env.ANTHROPIC_API_KEY).toBe('');
     expect(env.ANTHROPIC_BASE_URL).toBe('');
   });
 

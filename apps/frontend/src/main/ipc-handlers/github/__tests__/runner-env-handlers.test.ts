@@ -154,7 +154,7 @@ describe('GitHub runner env usage', () => {
     mockIpcMain.reset();
     projectRef.current = createProject();
     mockValidateGitHubModule.mockResolvedValue({ valid: true, backendPath: '/tmp/backend' });
-    mockGetRunnerEnv.mockResolvedValue({ ANTHROPIC_AUTH_TOKEN: 'token' });
+    mockGetRunnerEnv.mockResolvedValue({ ANTHROPIC_API_KEY: 'token' });
   });
 
   afterEach(() => {
@@ -196,7 +196,7 @@ describe('GitHub runner env usage', () => {
     expect(mockGetRunnerEnv).toHaveBeenCalledWith({ USE_CLAUDE_MD: 'true' });
     expect(mockRunPythonSubprocess).toHaveBeenCalledWith(
       expect.objectContaining({
-        env: { ANTHROPIC_AUTH_TOKEN: 'token' },
+        env: { ANTHROPIC_API_KEY: 'token' },
       })
     );
   });
@@ -221,7 +221,7 @@ describe('GitHub runner env usage', () => {
     expect(mockGetRunnerEnv).toHaveBeenCalledWith();
     expect(mockRunPythonSubprocess).toHaveBeenCalledWith(
       expect.objectContaining({
-        env: { ANTHROPIC_AUTH_TOKEN: 'token' },
+        env: { ANTHROPIC_API_KEY: 'token' },
       })
     );
   });
@@ -255,7 +255,7 @@ describe('GitHub runner env usage', () => {
     expect(mockGetRunnerEnv).toHaveBeenCalledWith();
     expect(mockRunPythonSubprocess).toHaveBeenCalledWith(
       expect.objectContaining({
-        env: { ANTHROPIC_AUTH_TOKEN: 'token' },
+        env: { ANTHROPIC_API_KEY: 'token' },
       })
     );
   });

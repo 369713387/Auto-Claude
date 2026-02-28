@@ -180,7 +180,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
     spawnCalls.length = 0;
 
     // Clear environment variables that could interfere with tests
-    delete process.env.ANTHROPIC_AUTH_TOKEN;
+    delete process.env.ANTHROPIC_API_KEY;
     delete process.env.ANTHROPIC_BASE_URL;
     delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
     // Clear CLI path env vars so tests use mocked getToolInfo
@@ -202,7 +202,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
     it('should inject ANTHROPIC_BASE_URL when active profile has baseUrl', async () => {
       const mockApiProfileEnv = {
         ANTHROPIC_BASE_URL: 'https://custom.api.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key'
+        ANTHROPIC_API_KEY: 'sk-test-key'
       };
 
       vi.mocked(profileService.getAPIProfileEnv).mockResolvedValue(mockApiProfileEnv);
@@ -214,13 +214,13 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       expect(spawnCalls[0].args).toContain('run.py');
       expect(spawnCalls[0].options.env).toMatchObject({
         ANTHROPIC_BASE_URL: 'https://custom.api.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key'
+        ANTHROPIC_API_KEY: 'sk-test-key'
       });
     });
 
-    it('should inject ANTHROPIC_AUTH_TOKEN when active profile has apiKey', async () => {
+    it('should inject ANTHROPIC_API_KEY when active profile has apiKey', async () => {
       const mockApiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-custom-key-12345678'
+        ANTHROPIC_API_KEY: 'sk-custom-key-12345678'
       };
 
       vi.mocked(profileService.getAPIProfileEnv).mockResolvedValue(mockApiProfileEnv);
@@ -228,7 +228,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       await processManager.spawnProcess('task-1', '/fake/cwd', ['run.py'], {}, 'task-execution');
 
       expect(spawnCalls).toHaveLength(1);
-      expect(spawnCalls[0].options.env.ANTHROPIC_AUTH_TOKEN).toBe('sk-custom-key-12345678');
+      expect(spawnCalls[0].options.env.ANTHROPIC_API_KEY).toBe('sk-custom-key-12345678');
     });
 
     it('should inject model env vars when active profile has models configured', async () => {
@@ -254,12 +254,12 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
 
     it('should give API profile env vars highest precedence over extraEnv', async () => {
       const extraEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-extra-token',
+        ANTHROPIC_API_KEY: 'sk-extra-token',
         ANTHROPIC_BASE_URL: 'https://extra.com'
       };
 
       const mockApiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-profile-token',
+        ANTHROPIC_API_KEY: 'sk-profile-token',
         ANTHROPIC_BASE_URL: 'https://profile.com'
       };
 
@@ -269,7 +269,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
 
       expect(spawnCalls).toHaveLength(1);
       // API profile should override extraEnv
-      expect(spawnCalls[0].options.env.ANTHROPIC_AUTH_TOKEN).toBe('sk-profile-token');
+      expect(spawnCalls[0].options.env.ANTHROPIC_API_KEY).toBe('sk-profile-token');
       expect(spawnCalls[0].options.env.ANTHROPIC_BASE_URL).toBe('https://profile.com');
     });
   });
@@ -287,7 +287,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       process.env = originalEnv;
     });
 
-    it('should NOT set ANTHROPIC_AUTH_TOKEN when no active profile (OAuth mode)', async () => {
+    it('should NOT set ANTHROPIC_API_KEY when no active profile (OAuth mode)', async () => {
       // Return empty object = OAuth mode
       vi.mocked(profileService.getAPIProfileEnv).mockResolvedValue({});
 
@@ -304,8 +304,8 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       expect(spawnCalls).toHaveLength(1);
       const envArg = spawnCalls[0].options.env as Record<string, unknown>;
       expect(envArg.CLAUDE_CODE_OAUTH_TOKEN).toBe('oauth-token-123');
-      // OAuth mode clears ANTHROPIC_AUTH_TOKEN with empty string (not undefined)
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('');
+      // OAuth mode clears ANTHROPIC_API_KEY with empty string (not undefined)
+      expect(envArg.ANTHROPIC_API_KEY).toBe('');
     });
 
     it('should return empty object from getAPIProfileEnv when activeProfileId is null', async () => {
@@ -315,11 +315,11 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       expect(result).toEqual({});
     });
 
-    it('should clear stale ANTHROPIC_AUTH_TOKEN from process.env when switching to OAuth mode', async () => {
+    it('should clear stale ANTHROPIC_API_KEY from process.env when switching to OAuth mode', async () => {
       // Simulate process.env having stale ANTHROPIC_* vars from previous session
       process.env = {
         ...originalEnv,
-        ANTHROPIC_AUTH_TOKEN: 'stale-token-from-env',
+        ANTHROPIC_API_KEY: 'stale-token-from-env',
         ANTHROPIC_BASE_URL: 'https://stale.example.com'
       };
 
@@ -342,7 +342,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       expect(envArg.CLAUDE_CODE_OAUTH_TOKEN).toBe('oauth-token-456');
 
       // Stale ANTHROPIC_* vars should be cleared (empty string overrides process.env)
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('');
+      expect(envArg.ANTHROPIC_API_KEY).toBe('');
       expect(envArg.ANTHROPIC_BASE_URL).toBe('');
     });
 
@@ -373,12 +373,12 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
     it('should NOT clear ANTHROPIC_* vars when API Profile is active', async () => {
       process.env = {
         ...originalEnv,
-        ANTHROPIC_AUTH_TOKEN: 'old-token-in-env'
+        ANTHROPIC_API_KEY: 'old-token-in-env'
       };
 
       // API Profile mode - active profile
       const mockApiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-profile-active',
+        ANTHROPIC_API_KEY: 'sk-profile-active',
         ANTHROPIC_BASE_URL: 'https://active-profile.com'
       };
       vi.mocked(profileService.getAPIProfileEnv).mockResolvedValue(mockApiProfileEnv);
@@ -388,7 +388,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       const envArg = spawnCalls[0].options.env as Record<string, unknown>;
 
       // Should use API profile vars, NOT clear them
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('sk-profile-active');
+      expect(envArg.ANTHROPIC_API_KEY).toBe('sk-profile-active');
       expect(envArg.ANTHROPIC_BASE_URL).toBe('https://active-profile.com');
     });
   });
@@ -396,7 +396,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
   describe('AC4: No API Key Logging', () => {
     it('should never log full API keys in spawn env vars', async () => {
       const mockApiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-sensitive-api-key-12345678',
+        ANTHROPIC_API_KEY: 'sk-sensitive-api-key-12345678',
         ANTHROPIC_BASE_URL: 'https://api.example.com'
       };
 
@@ -414,7 +414,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       const envArg = spawnCalls[0].options.env as Record<string, unknown>;
 
       // Verify the full API key is in the env (for Python subprocess)
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('sk-sensitive-api-key-12345678');
+      expect(envArg.ANTHROPIC_API_KEY).toBe('sk-sensitive-api-key-12345678');
 
       // Collect ALL console output from all methods
       const allLogCalls = [
@@ -437,7 +437,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
 
     it('should not log API key even in error scenarios', async () => {
       const mockApiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-secret-key-for-error-test',
+        ANTHROPIC_API_KEY: 'sk-secret-key-for-error-test',
         ANTHROPIC_BASE_URL: 'https://api.example.com'
       };
 
@@ -468,7 +468,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
     it('should allow different profiles for different spawn calls', async () => {
       // First spawn with Profile A
       const profileAEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-profile-a',
+        ANTHROPIC_API_KEY: 'sk-profile-a',
         ANTHROPIC_BASE_URL: 'https://api-a.com'
       };
 
@@ -477,11 +477,11 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       await processManager.spawnProcess('task-1', '/fake/cwd', ['run.py'], {}, 'task-execution');
 
       const firstEnv = spawnCalls[0].options.env as Record<string, unknown>;
-      expect(firstEnv.ANTHROPIC_AUTH_TOKEN).toBe('sk-profile-a');
+      expect(firstEnv.ANTHROPIC_API_KEY).toBe('sk-profile-a');
 
       // Second spawn with Profile B (user switched active profile)
       const profileBEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-profile-b',
+        ANTHROPIC_API_KEY: 'sk-profile-b',
         ANTHROPIC_BASE_URL: 'https://api-b.com'
       };
 
@@ -490,10 +490,10 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       await processManager.spawnProcess('task-2', '/fake/cwd', ['run.py'], {}, 'task-execution');
 
       const secondEnv = spawnCalls[1].options.env as Record<string, unknown>;
-      expect(secondEnv.ANTHROPIC_AUTH_TOKEN).toBe('sk-profile-b');
+      expect(secondEnv.ANTHROPIC_API_KEY).toBe('sk-profile-b');
 
       // Verify first spawn's env is NOT affected by second spawn
-      expect(firstEnv.ANTHROPIC_AUTH_TOKEN).toBe('sk-profile-a');
+      expect(firstEnv.ANTHROPIC_API_KEY).toBe('sk-profile-a');
     });
   });
 
@@ -508,7 +508,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       };
 
       const apiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-api-profile',
+        ANTHROPIC_API_KEY: 'sk-api-profile',
         ANTHROPIC_BASE_URL: 'https://api-profile.com'
       };
 
@@ -527,7 +527,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       // Verify all sources are included
       expect(envArg.CUSTOM_VAR).toBe('from-extra'); // From extraEnv
       expect(envArg.CLAUDE_CONFIG_DIR).toBe('/custom/config'); // From profileEnv
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('sk-api-profile'); // From apiProfileEnv (highest for ANTHROPIC_*)
+      expect(envArg.ANTHROPIC_API_KEY).toBe('sk-api-profile'); // From apiProfileEnv (highest for ANTHROPIC_*)
 
       // Verify standard Python env vars
       expect(envArg.PYTHONUNBUFFERED).toBe('1');
@@ -544,7 +544,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       const envArg = spawnCalls[0].options.env as Record<string, unknown>;
 
       // Verify clearing vars are applied (empty strings for ANTHROPIC_* vars)
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('');
+      expect(envArg.ANTHROPIC_API_KEY).toBe('');
       expect(envArg.ANTHROPIC_BASE_URL).toBe('');
       expect(envArg.ANTHROPIC_MODEL).toBe('');
       expect(envArg.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('');
@@ -564,7 +564,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       const envArg = spawnCalls[0].options.env as Record<string, unknown>;
 
       // Should have clearing vars (falls back to OAuth mode on error)
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('');
+      expect(envArg.ANTHROPIC_API_KEY).toBe('');
       expect(envArg.ANTHROPIC_BASE_URL).toBe('');
     });
   });
@@ -868,7 +868,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
     it('should pass ANTHROPIC_* vars without CLAUDE_CONFIG_DIR interference in API profile mode', async () => {
       // API Profile mode - active profile with custom endpoint
       const mockApiProfileEnv = {
-        ANTHROPIC_AUTH_TOKEN: 'sk-api-profile-key',
+        ANTHROPIC_API_KEY: 'sk-api-profile-key',
         ANTHROPIC_BASE_URL: 'https://custom-api.example.com',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929'
       };
@@ -888,7 +888,7 @@ describe('AgentProcessManager - API Profile Env Injection (Story 2.3)', () => {
       const envArg = spawnCalls[0].options.env as Record<string, unknown>;
 
       // ANTHROPIC_* vars from API profile should be passed through
-      expect(envArg.ANTHROPIC_AUTH_TOKEN).toBe('sk-api-profile-key');
+      expect(envArg.ANTHROPIC_API_KEY).toBe('sk-api-profile-key');
       expect(envArg.ANTHROPIC_BASE_URL).toBe('https://custom-api.example.com');
       expect(envArg.ANTHROPIC_MODEL).toBe('claude-sonnet-4-5-20250929');
 
