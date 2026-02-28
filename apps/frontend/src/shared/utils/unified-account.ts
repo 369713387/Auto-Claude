@@ -106,6 +106,7 @@ export function apiProfileToUnified(
     isRateLimited: false, // API profiles don't have rate limits
     rateLimitType: undefined,
     isAuthenticated,
+    configDir: profile.configDir, // Pass through configDir for custom Claude settings
     needsReauthentication: false
   };
 }

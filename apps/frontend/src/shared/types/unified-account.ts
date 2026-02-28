@@ -72,6 +72,12 @@ export interface UnifiedAccount {
   isAuthenticated?: boolean;
 
   /**
+   * Path to Claude config directory (e.g., C:\Users\Name\.claude)
+   * Only for API profiles that have a custom configDir set
+   */
+  configDir?: string;
+
+  /**
    * Set when this account has identical usage to another OAuth account.
    * This may indicate the same underlying Anthropic account registered twice.
    */

@@ -96,21 +96,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   // Tab management actions
   openProjectTab: (projectId) => {
     const state = get();
-    console.log('[ProjectStore] openProjectTab called:', {
-      projectId,
-      currentOpenProjectIds: state.openProjectIds,
-      currentTabOrder: state.tabOrder
-    });
     if (!state.openProjectIds.includes(projectId)) {
       const newOpenProjectIds = [...state.openProjectIds, projectId];
       const newTabOrder = state.tabOrder.includes(projectId)
         ? state.tabOrder
         : [...state.tabOrder, projectId];
-
-      console.log('[ProjectStore] Adding new tab:', {
-        newOpenProjectIds,
-        newTabOrder
-      });
 
       set({
         openProjectIds: newOpenProjectIds,
@@ -121,7 +111,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       // Save to main process (debounced)
       saveTabStateToMain();
     } else {
-      console.log('[ProjectStore] Project already open, just activating');
       // Project already open, just make it active
       get().setActiveProject(projectId);
     }
@@ -170,7 +159,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   restoreTabState: () => {
     // This is now handled by loadTabStateFromMain() called during loadProjects()
-    console.log('[ProjectStore] restoreTabState called - now handled by IPC');
   },
 
 
@@ -222,7 +210,6 @@ function saveTabStateToMain(): void {
       activeProjectId: store.activeProjectId,
       tabOrder: store.tabOrder
     };
-    console.log('[ProjectStore] Saving tab state to main process:', tabState);
     try {
       await window.electronAPI.saveTabState(tabState);
     } catch (err) {
@@ -254,11 +241,6 @@ export async function loadProjects(): Promise<void> {
 
     // Then load projects
     const result = await window.electronAPI.getProjects();
-    console.log('[ProjectStore] getProjects result:', {
-      success: result.success,
-      projectCount: result.data?.length,
-      projectIds: result.data?.map(p => p.id)
-    });
 
     if (result.success && result.data) {
       store.setProjects(result.data);
@@ -278,20 +260,10 @@ export async function loadProjects(): Promise<void> {
         ? currentState.activeProjectId
         : null;
 
-      console.log('[ProjectStore] Tab state cleanup:', {
-        originalOpenProjectIds: currentState.openProjectIds,
-        validOpenProjectIds,
-        originalTabOrder: currentState.tabOrder,
-        validTabOrder,
-        originalActiveProjectId: currentState.activeProjectId,
-        validActiveProjectId
-      });
-
       // Update store with cleaned tab state if needed
       if (validOpenProjectIds.length !== currentState.openProjectIds.length ||
           validTabOrder.length !== currentState.tabOrder.length ||
           validActiveProjectId !== currentState.activeProjectId) {
-        console.log('[ProjectStore] Updating cleaned tab state');
         useProjectStore.setState({
           openProjectIds: validOpenProjectIds,
           tabOrder: validTabOrder,
@@ -299,8 +271,6 @@ export async function loadProjects(): Promise<void> {
         });
         // Save cleaned state back to main process
         saveTabStateToMain();
-      } else {
-        console.log('[ProjectStore] Tab state is valid, no cleanup needed');
       }
 
       // Restore last selected project from localStorage for backward compatibility,

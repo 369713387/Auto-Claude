@@ -30,7 +30,8 @@ import {
   Server,
   Globe,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Lock
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -59,6 +60,126 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '../ui/alert-dialog';
+
+/**
+ * OAuth Settings Section Component
+ *
+ * Provides a toggle to enable/disable OAuth authentication.
+ * When disabled, only API profiles can be used for authentication.
+ */
+function OAuthSettingsSection() {
+  const { t } = useTranslation('settings');
+  const { toast } = useToast();
+  const { settings, updateSettings, profiles: apiProfiles, activeProfileId } = useSettingsStore();
+
+  const [isEnvOverride, setIsEnvOverride] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Check if there's an active API profile configured
+  const hasApiProfile = apiProfiles.length > 0 && apiProfiles.some(p => p.id === activeProfileId);
+
+  // Check for environment variable override on mount
+  useEffect(() => {
+    const checkEnvOverride = async () => {
+      try {
+        const result = await window.electronAPI.getOAuthDisabled();
+        if (result.success && result.data) {
+          // If isOAuthDisabled is true AND oauthAllowed setting is true,
+          // it means env var is overriding the setting
+          setIsEnvOverride(result.data.isOAuthDisabled && settings.oauthAllowed !== false);
+        }
+      } catch (err) {
+        console.warn('[OAuthSettingsSection] Failed to check env override:', err);
+      }
+    };
+    checkEnvOverride();
+  }, [settings.oauthAllowed]);
+
+  const oauthAllowed = settings.oauthAllowed !== false; // Default to true
+
+  const handleToggle = async (checked: boolean) => {
+    if (!checked && !hasApiProfile) {
+      // Show warning - cannot disable without API profile
+      toast({
+        variant: 'destructive',
+        title: t('auth.oauthDisabledWarning'),
+        description: t('accounts.customEndpoints.empty.description'),
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Persist to backend
+      const result = await window.electronAPI.saveSettings({ oauthAllowed: checked });
+      if (result.success) {
+        updateSettings({ oauthAllowed: checked });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: t('accounts.toast.settingsUpdateFailed'),
+          description: t('accounts.toast.tryAgain'),
+        });
+      }
+    } catch (err) {
+      console.warn('[OAuthSettingsSection] Failed to save oauthAllowed:', err);
+      toast({
+        variant: 'destructive',
+        title: t('accounts.toast.settingsUpdateFailed'),
+        description: t('accounts.toast.tryAgain'),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 pt-6 border-t border-border">
+      <div className="flex items-center gap-2">
+        <Lock className="h-4 w-4 text-muted-foreground" />
+        <h4 className="text-sm font-semibold text-foreground">{t('auth.oauthAllowed')}</h4>
+      </div>
+
+      <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-medium">{t('auth.oauthAllowed')}</Label>
+            <p className="text-xs text-muted-foreground">
+              {t('auth.oauthAllowedDescription')}
+            </p>
+          </div>
+          <Switch
+            checked={oauthAllowed}
+            onCheckedChange={handleToggle}
+            disabled={isEnvOverride || isSaving}
+          />
+        </div>
+
+        {!oauthAllowed && !hasApiProfile && (
+          <div className="rounded-md bg-warning/10 border border-warning/30 p-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+              <p className="text-xs text-warning">
+                {t('auth.oauthDisabledWarning')}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isEnvOverride && (
+          <div className="rounded-md bg-muted border border-border p-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                {t('auth.envVarOverride')}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface AccountSettingsProps {
   settings: AppSettings;
@@ -1268,6 +1389,9 @@ export function AccountSettings({ settings, onSettingsChange, isOpen }: AccountS
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* OAuth Settings Section */}
+        <OAuthSettingsSection />
 
         {/* Auto-Switch Settings Section - Persistent below tabs */}
         {totalAccounts > 1 && (

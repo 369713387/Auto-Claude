@@ -30,7 +30,6 @@ const possibleEnvPaths = [
 for (const envPath of possibleEnvPaths) {
   if (existsSync(envPath)) {
     config({ path: envPath, quiet: true });
-    console.log(`[dotenv] Loaded environment from: ${envPath}`);
     break;
   }
 }
@@ -238,7 +237,6 @@ function createWindow(): void {
 
   if (initialSpellCheckLanguages.length > 0) {
     session.defaultSession.setSpellCheckerLanguages(initialSpellCheckLanguages);
-    console.log(`[SPELLCHECK] Initial languages set to: ${initialSpellCheckLanguages.join(', ')}`);
   } else {
     console.warn('[SPELLCHECK] No spell check languages available on this system');
   }
@@ -359,7 +357,6 @@ if (isMacOS()) {
 if (isWindows()) {
   app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
   app.commandLine.appendSwitch('disable-gpu-program-cache');
-  console.log('[main] Applied Windows GPU cache fixes');
 }
 
 // Initialize the application
@@ -370,7 +367,6 @@ app.whenReady().then(() => {
   // Clear cache on Windows to prevent permission errors from stale cache
   if (isWindows()) {
     session.defaultSession.clearCache()
-      .then(() => console.log('[main] Cleared cache on startup'))
       .catch((err) => console.warn('[main] Failed to clear cache:', err));
   }
 
@@ -441,7 +437,6 @@ app.whenReady().then(() => {
           }
 
           if (correctedPathExists) {
-            console.log('[main] Migrating autoBuildPath from old structure:', validAutoBuildPath, '->', correctedPath);
             settings.autoBuildPath = correctedPath;
             validAutoBuildPath = correctedPath;
             migrated = true;
@@ -449,7 +444,6 @@ app.whenReady().then(() => {
             // Save the corrected setting - we're the only process modifying settings at startup
             try {
               writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
-              console.log('[main] Successfully saved migrated autoBuildPath to settings');
             } catch (writeError) {
               console.warn('[main] Failed to save migrated autoBuildPath:', writeError);
             }

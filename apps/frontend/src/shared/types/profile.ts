@@ -20,6 +20,8 @@ export interface APIProfile {
   name: string; // User-friendly name
   baseUrl: string; // API endpoint URL (e.g., https://api.anthropic.com)
   apiKey: string; // Full API key (never display in UI - use maskApiKey())
+  /** Path to Claude config directory (e.g., C:\Users\Name\.claude) */
+  configDir?: string;
   models?: {
     // OPTIONAL - only specify models to override
     default?: string; // Maps to ANTHROPIC_MODEL

@@ -23,6 +23,12 @@ export const settingsMock = {
   // Spell check (no-op in browser mode)
   setSpellCheckLanguages: async () => ({ success: true, data: { success: true } }),
 
+  // OAuth settings (mock - OAuth is enabled by default in browser mode)
+  getOAuthDisabled: async () => ({
+    success: true,
+    data: { isOAuthDisabled: false }
+  }),
+
   getCliToolsInfo: async () => ({
     success: true,
     data: {

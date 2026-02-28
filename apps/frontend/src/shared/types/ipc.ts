@@ -380,6 +380,9 @@ export interface ElectronAPI {
   // Spell check
   setSpellCheckLanguages: (language: string) => Promise<IPCResult<{ success: boolean }>>;
 
+  // OAuth settings
+  getOAuthDisabled: () => Promise<IPCResult<{ isOAuthDisabled: boolean }>>;
+
   // Sentry error reporting
   notifySentryStateChanged: (enabled: boolean) => void;
   getSentryDsn: () => Promise<string>;
