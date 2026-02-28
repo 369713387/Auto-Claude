@@ -83,6 +83,7 @@ export interface SessionCaptureResult {
 export interface TerminalOperationResult {
   success: boolean;
   error?: string;
+  message?: string;
   outputBuffer?: string;
 }
 
