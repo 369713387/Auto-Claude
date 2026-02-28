@@ -71,7 +71,10 @@ export const DEFAULT_APP_SETTINGS = {
   // GPU acceleration for terminal rendering
   // Default to 'off' until WebGL stability is proven across all GPU drivers.
   // Users can opt-in via Settings > Display > GPU Acceleration.
-  gpuAcceleration: 'off' as const
+  gpuAcceleration: 'off' as const,
+  // OAuth authentication toggle - enabled by default
+  // Set to false to disable OAuth and require API profiles only
+  oauthAllowed: true
 };
 
 // ============================================

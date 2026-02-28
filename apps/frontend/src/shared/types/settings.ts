@@ -296,6 +296,8 @@ export interface AppSettings {
   sidebarCollapsed?: boolean;
   // GPU acceleration for terminal rendering (WebGL)
   gpuAcceleration?: GpuAcceleration;
+  // OAuth authentication toggle (allows disabling OAuth for API-only mode)
+  oauthAllowed?: boolean;
 }
 
 // GPU acceleration mode for terminal WebGL rendering

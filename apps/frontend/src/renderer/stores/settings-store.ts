@@ -30,6 +30,7 @@ interface SettingsState {
   updateSettings: (updates: Partial<AppSettings>) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setOauthAllowed: (oauthAllowed: boolean) => void;
 
   // Profile actions
   setProfiles: (profiles: APIProfile[], activeProfileId: string | null) => void;
@@ -73,6 +74,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   setError: (error) => set({ error }),
+
+  setOauthAllowed: (oauthAllowed) =>
+    set((state) => ({
+      settings: { ...state.settings, oauthAllowed }
+    })),
 
   // Profile actions
   setProfiles: (profiles, activeProfileId) => set({ profiles, activeProfileId }),
