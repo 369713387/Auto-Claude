@@ -245,7 +245,7 @@ export async function updateProfile(input: UpdateProfileInput): Promise<APIProfi
  *
  * Environment Variable Mapping:
  * - profile.baseUrl → ANTHROPIC_BASE_URL
- * - profile.apiKey → ANTHROPIC_AUTH_TOKEN
+ * - profile.apiKey → ANTHROPIC_API_KEY
  * - profile.models.default → ANTHROPIC_MODEL
  * - profile.models.haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
  * - profile.models.sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
@@ -275,7 +275,7 @@ export async function getAPIProfileEnv(): Promise<Record<string, string>> {
   // Map profile fields to SDK env vars
   const envVars: Record<string, string> = {
     ANTHROPIC_BASE_URL: profile.baseUrl || '',
-    ANTHROPIC_AUTH_TOKEN: profile.apiKey || '',
+    ANTHROPIC_API_KEY: profile.apiKey || '',
     ANTHROPIC_MODEL: profile.models?.default || '',
     ANTHROPIC_DEFAULT_HAIKU_MODEL: profile.models?.haiku || '',
     ANTHROPIC_DEFAULT_SONNET_MODEL: profile.models?.sonnet || '',

@@ -593,7 +593,7 @@ describe('profile-service', () => {
 
       expect(result).toEqual({
         ANTHROPIC_BASE_URL: 'https://api.custom.com',
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678',
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929',
         ANTHROPIC_DEFAULT_HAIKU_MODEL: 'claude-haiku-4-5-20251001',
         ANTHROPIC_DEFAULT_SONNET_MODEL: 'claude-sonnet-4-5-20250929',
@@ -631,7 +631,7 @@ describe('profile-service', () => {
       expect(result).not.toHaveProperty('ANTHROPIC_DEFAULT_HAIKU_MODEL');
       expect(result).not.toHaveProperty('ANTHROPIC_DEFAULT_SONNET_MODEL');
       expect(result).toEqual({
-        ANTHROPIC_AUTH_TOKEN: 'sk-test-key-12345678',
+        ANTHROPIC_API_KEY: 'sk-test-key-12345678',
         ANTHROPIC_MODEL: 'claude-sonnet-4-5-20250929'
       });
     });

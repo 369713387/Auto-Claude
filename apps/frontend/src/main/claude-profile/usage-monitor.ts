@@ -2019,8 +2019,7 @@ export class UsageMonitor extends EventEmitter {
     const operationSummary = operationRegistry.getSummary();
     const operationIdsOnOldProfile = operationSummary.byProfile[currentProfileId] || [];
 
-    // Always log running operations info for debugging
-    console.log('[UsageMonitor] PROACTIVE-SWAP: Checking running operations:', {
+    this.debugLog('[UsageMonitor] PROACTIVE-SWAP: Checking running operations:', {
       oldProfileId: currentProfileId,
       newProfileId: bestAccount.id,
       totalRunning: operationSummary.totalRunning,
@@ -2030,7 +2029,7 @@ export class UsageMonitor extends EventEmitter {
     });
 
     if (operationIdsOnOldProfile.length > 0) {
-      console.log('[UsageMonitor] PROACTIVE-SWAP: Found', operationIdsOnOldProfile.length, 'operations to restart:', operationIdsOnOldProfile);
+      this.debugLog(`[UsageMonitor] PROACTIVE-SWAP: Found ${operationIdsOnOldProfile.length} operations to restart:`, operationIdsOnOldProfile);
 
       // Restart all operations on the old profile with the new profile
       const restartedCount = await operationRegistry.restartOperationsOnProfile(
@@ -2049,7 +2048,7 @@ export class UsageMonitor extends EventEmitter {
         timestamp: new Date()
       });
     } else {
-      console.log('[UsageMonitor] PROACTIVE-SWAP: No operations running on old profile', currentProfileId, '- swap complete without restart');
+      this.debugLog(`[UsageMonitor] PROACTIVE-SWAP: No operations running on old profile ${currentProfileId} - swap complete without restart`);
     }
 
     // Note: Don't immediately check new profile - let normal interval handle it
