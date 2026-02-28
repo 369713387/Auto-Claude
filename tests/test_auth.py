@@ -48,20 +48,20 @@ class TestEnvVarTokenResolution:
         token = get_auth_token()
         assert token == test_token
 
-    def test_anthropic_auth_token_from_env(self):
-        """Reads ANTHROPIC_AUTH_TOKEN from environment."""
+    def test_anthropic_api_key_from_env(self):
+        """Reads ANTHROPIC_API_KEY from environment."""
         test_token = "sk-ant-oat01-test-enterprise-token"
-        os.environ["ANTHROPIC_AUTH_TOKEN"] = test_token
+        os.environ["ANTHROPIC_API_KEY"] = test_token
 
         token = get_auth_token()
         assert token == test_token
 
     def test_claude_oauth_takes_precedence(self):
-        """CLAUDE_CODE_OAUTH_TOKEN takes precedence over ANTHROPIC_AUTH_TOKEN."""
+        """CLAUDE_CODE_OAUTH_TOKEN takes precedence over ANTHROPIC_API_KEY."""
         claude_token = "sk-ant-oat01-claude-token"
         anthropic_token = "sk-ant-oat01-anthropic-token"
 
-        os.environ["ANTHROPIC_AUTH_TOKEN"] = anthropic_token
+        os.environ["ANTHROPIC_API_KEY"] = anthropic_token
         os.environ["CLAUDE_CODE_OAUTH_TOKEN"] = claude_token
 
         token = get_auth_token()
@@ -84,10 +84,10 @@ class TestEnvVarTokenResolution:
     def test_empty_token_ignored(self):
         """Empty string tokens are ignored."""
         os.environ["CLAUDE_CODE_OAUTH_TOKEN"] = ""
-        os.environ["ANTHROPIC_AUTH_TOKEN"] = "sk-ant-oat01-test-token"
+        os.environ["ANTHROPIC_API_KEY"] = "sk-ant-oat01-test-token"
 
         token = get_auth_token()
-        # Should get ANTHROPIC_AUTH_TOKEN since CLAUDE_CODE_OAUTH_TOKEN is empty
+        # Should get ANTHROPIC_API_KEY since CLAUDE_CODE_OAUTH_TOKEN is empty
         assert token == "sk-ant-oat01-test-token"
 
 
@@ -452,10 +452,10 @@ class TestEnsureClaudeCodeOAuthToken:
 
         assert os.environ["CLAUDE_CODE_OAUTH_TOKEN"] == existing_token
 
-    def test_copies_from_anthropic_auth_token(self):
-        """Copies ANTHROPIC_AUTH_TOKEN to CLAUDE_CODE_OAUTH_TOKEN."""
+    def test_copies_from_anthropic_api_key(self):
+        """Copies ANTHROPIC_API_KEY to CLAUDE_CODE_OAUTH_TOKEN."""
         anthropic_token = "sk-ant-oat01-anthropic-token"
-        os.environ["ANTHROPIC_AUTH_TOKEN"] = anthropic_token
+        os.environ["ANTHROPIC_API_KEY"] = anthropic_token
 
         ensure_claude_code_oauth_token()
 
@@ -492,12 +492,12 @@ class TestTokenSourceDetection:
         source = get_auth_token_source()
         assert source == "CLAUDE_CODE_OAUTH_TOKEN"
 
-    def test_source_env_var_anthropic_auth(self):
-        """Identifies ANTHROPIC_AUTH_TOKEN as source."""
-        os.environ["ANTHROPIC_AUTH_TOKEN"] = "sk-ant-oat01-test-token"
+    def test_source_env_var_anthropic_api_key(self):
+        """Identifies ANTHROPIC_API_KEY as source."""
+        os.environ["ANTHROPIC_API_KEY"] = "sk-ant-oat01-test-token"
 
         source = get_auth_token_source()
-        assert source == "ANTHROPIC_AUTH_TOKEN"
+        assert source == "ANTHROPIC_API_KEY"
 
     def test_source_macos_keychain(self, monkeypatch):
         """Identifies macOS Keychain as source."""

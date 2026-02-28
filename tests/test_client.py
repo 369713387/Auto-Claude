@@ -17,7 +17,7 @@ import pytest
 # Auth token env vars that need to be cleared between tests
 AUTH_TOKEN_ENV_VARS = [
     "CLAUDE_CODE_OAUTH_TOKEN",
-    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_API_KEY",
     "ANTHROPIC_BASE_URL",
 ]
 
@@ -153,11 +153,11 @@ class TestAPIProfileAuthentication:
         pass
 
     def test_api_profile_mode_with_valid_token(self, tmp_path, monkeypatch):
-        """API profile mode succeeds with ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN."""
+        """API profile mode succeeds with ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY."""
         api_token = "sk-api-test-token-123456"
         api_endpoint = "https://api.z.ai/v1"
 
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
         # Ensure no OAuth token is set
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
@@ -175,35 +175,35 @@ class TestAPIProfileAuthentication:
             # Verify CLAUDE_CODE_OAUTH_TOKEN was NOT set (API profile mode)
             assert "CLAUDE_CODE_OAUTH_TOKEN" not in os.environ
 
-            # Verify ANTHROPIC_AUTH_TOKEN is still set
-            assert os.environ.get("ANTHROPIC_AUTH_TOKEN") == api_token
+            # Verify ANTHROPIC_API_KEY is still set
+            assert os.environ.get("ANTHROPIC_API_KEY") == api_token
             assert os.environ.get("ANTHROPIC_BASE_URL") == api_endpoint
 
     def test_api_profile_mode_missing_token_raises_error(self, tmp_path, monkeypatch):
-        """API profile mode raises ValueError when ANTHROPIC_AUTH_TOKEN is missing."""
+        """API profile mode raises ValueError when ANTHROPIC_API_KEY is missing."""
         api_endpoint = "https://api.z.ai/v1"
 
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
-        # Don't set ANTHROPIC_AUTH_TOKEN - this should cause an error
-        monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+        # Don't set ANTHROPIC_API_KEY - this should cause an error
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
 
         from core.client import create_client
 
-        with pytest.raises(ValueError, match=r"API profile mode active.*ANTHROPIC_AUTH_TOKEN is not set"):
+        with pytest.raises(ValueError, match=r"API profile mode active.*ANTHROPIC_API_KEY is not set"):
             create_client(tmp_path, tmp_path, "glm-4", "coder")
 
     def test_api_profile_mode_empty_token_raises_error(self, tmp_path, monkeypatch):
-        """API profile mode raises ValueError when ANTHROPIC_AUTH_TOKEN is empty string."""
+        """API profile mode raises ValueError when ANTHROPIC_API_KEY is empty string."""
         api_endpoint = "https://api.z.ai/v1"
 
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "")  # Empty string
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "")  # Empty string
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
 
         from core.client import create_client
 
-        with pytest.raises(ValueError, match=r"API profile mode active.*ANTHROPIC_AUTH_TOKEN is not set"):
+        with pytest.raises(ValueError, match=r"API profile mode active.*ANTHROPIC_API_KEY is not set"):
             create_client(tmp_path, tmp_path, "glm-4", "coder")
 
     def test_oauth_mode_without_base_url(self, tmp_path, monkeypatch):
@@ -233,14 +233,14 @@ class TestAPIProfileAuthentication:
         When both ANTHROPIC_BASE_URL and OAuth token are set, API profile mode wins.
 
         create_client() explicitly removes CLAUDE_CODE_OAUTH_TOKEN in API profile mode
-        so the SDK uses ANTHROPIC_AUTH_TOKEN instead (SDK prioritizes OAuth over API keys).
+        so the SDK uses ANTHROPIC_API_KEY instead (SDK prioritizes OAuth over API keys).
         """
         api_token = "sk-api-test-token-123456"
         api_endpoint = "https://api.z.ai/v1"
         oauth_token = "sk-ant-oat01-oauth-token"
 
         # Set both API profile and OAuth
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
         monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", oauth_token)
 
@@ -293,7 +293,7 @@ class TestAPIProfileAuthentication:
         """API profile mode works with various endpoint formats."""
         api_token = "sk-api-test-token-123456"
 
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", endpoint)
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
 
@@ -310,7 +310,7 @@ class TestAPIProfileAuthentication:
         """OAuth mode raises ValueError when no OAuth token is available."""
         # Don't set any auth tokens
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
-        monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("ANTHROPIC_BASE_URL", raising=False)
 
         # Mock keychain to return None
@@ -331,18 +331,18 @@ class TestAPIProfileAuthenticationIntegration:
         pass
 
     def test_sdk_env_vars_includes_api_profile_vars(self, monkeypatch):
-        """Verify get_sdk_env_vars() passes ANTHROPIC_AUTH_TOKEN and ANTHROPIC_BASE_URL."""
+        """Verify get_sdk_env_vars() passes ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL."""
         from core.auth import get_sdk_env_vars
 
         api_token = "sk-api-test-token"
         api_endpoint = "https://api.z.ai/v1"
 
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
 
         sdk_env = get_sdk_env_vars()
 
-        assert sdk_env.get("ANTHROPIC_AUTH_TOKEN") == api_token
+        assert sdk_env.get("ANTHROPIC_API_KEY") == api_token
         assert sdk_env.get("ANTHROPIC_BASE_URL") == api_endpoint
 
     def test_sdk_env_vars_excludes_oauth_in_api_profile_mode(self, monkeypatch):
@@ -354,7 +354,7 @@ class TestAPIProfileAuthenticationIntegration:
         oauth_token = "sk-ant-oat01-oauth-token"
 
         # Set both API profile and OAuth
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
         monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", oauth_token)
 
@@ -363,7 +363,7 @@ class TestAPIProfileAuthenticationIntegration:
         # SDK_ENV_VARS doesn't include CLAUDE_CODE_OAUTH_TOKEN
         # (it's set separately in create_client())
         assert "CLAUDE_CODE_OAUTH_TOKEN" not in sdk_env
-        assert sdk_env.get("ANTHROPIC_AUTH_TOKEN") == api_token
+        assert sdk_env.get("ANTHROPIC_API_KEY") == api_token
         assert sdk_env.get("ANTHROPIC_BASE_URL") == api_endpoint
 
     def test_api_profile_mode_does_not_validate_oauth_token(self, tmp_path, monkeypatch):
@@ -372,7 +372,7 @@ class TestAPIProfileAuthenticationIntegration:
         api_endpoint = "https://api.z.ai/v1"
         encrypted_oauth_token = "enc:encrypted-oauth-token"  # Invalid encrypted format
 
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
         # Even with a bogus encrypted OAuth token, API profile mode should work
         monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", encrypted_oauth_token)
@@ -389,12 +389,12 @@ class TestAPIProfileAuthenticationIntegration:
             assert client is mock_sdk_client
 
     def test_oauth_mode_validates_token_even_with_api_env_vars_set(self, tmp_path, monkeypatch):
-        """In OAuth mode (no BASE_URL), token validation happens even if ANTHROPIC_AUTH_TOKEN is set."""
+        """In OAuth mode (no BASE_URL), token validation happens even if ANTHROPIC_API_KEY is set."""
         api_token = "sk-api-test-token"  # This exists but should be ignored in OAuth mode
         encrypted_oauth_token = "enc:encrypted-oauth-token"  # Invalid encrypted format
 
-        # Set ANTHROPIC_AUTH_TOKEN but NOT ANTHROPIC_BASE_URL - this is OAuth mode
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        # Set ANTHROPIC_API_KEY but NOT ANTHROPIC_BASE_URL - this is OAuth mode
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.delenv("ANTHROPIC_BASE_URL", raising=False)
         monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", encrypted_oauth_token)
         monkeypatch.setattr("core.auth.get_token_from_keychain", lambda _config_dir=None: None)
@@ -440,7 +440,7 @@ class TestAPIProfileAuthenticationEdgeCases:
         # Using an IDN (Internationalized Domain Name)
         api_endpoint = "https://münchen.example.com/v1"
 
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
 
         mock_sdk_client = MagicMock()
@@ -465,7 +465,7 @@ class TestAPIProfileAuthenticationEdgeCases:
         api_endpoint = "https://api.example.com/v1"
 
         for token in test_tokens:
-            monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", token)
+            monkeypatch.setenv("ANTHROPIC_API_KEY", token)
             monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
 
             mock_sdk_client = MagicMock()
@@ -475,7 +475,7 @@ class TestAPIProfileAuthenticationEdgeCases:
                 client = create_client(tmp_path, tmp_path, "glm-4", "coder")
 
                 assert client is mock_sdk_client
-                assert os.environ.get("ANTHROPIC_AUTH_TOKEN") == token
+                assert os.environ.get("ANTHROPIC_API_KEY") == token
 
 
 class TestSimpleClientAPIProfileAuthentication:
@@ -491,7 +491,7 @@ class TestSimpleClientAPIProfileAuthentication:
         api_token = "sk-api-test-token-123456"
         api_endpoint = "https://api.z.ai/v1"
 
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
 
@@ -512,12 +512,12 @@ class TestSimpleClientAPIProfileAuthentication:
         api_endpoint = "https://api.z.ai/v1"
 
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
-        monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
 
         from core.simple_client import create_simple_client
 
-        with pytest.raises(ValueError, match=r"API profile mode active.*ANTHROPIC_AUTH_TOKEN is not set"):
+        with pytest.raises(ValueError, match=r"API profile mode active.*ANTHROPIC_API_KEY is not set"):
             create_simple_client(agent_type="merge_resolver")
 
     def test_simple_client_oauth_mode_without_base_url(self, monkeypatch):
@@ -545,14 +545,14 @@ class TestSimpleClientAPIProfileAuthentication:
         When both ANTHROPIC_BASE_URL and OAuth token are set, API profile mode wins.
 
         create_simple_client() explicitly removes CLAUDE_CODE_OAUTH_TOKEN in API profile mode
-        so the SDK uses ANTHROPIC_AUTH_TOKEN instead (SDK prioritizes OAuth over API keys).
+        so the SDK uses ANTHROPIC_API_KEY instead (SDK prioritizes OAuth over API keys).
         """
         api_token = "sk-api-test-token-123456"
         api_endpoint = "https://api.z.ai/v1"
         oauth_token = "sk-ant-oat01-oauth-token"
 
         # Set both API profile and OAuth
-        monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", api_token)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", api_token)
         monkeypatch.setenv("ANTHROPIC_BASE_URL", api_endpoint)
         monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", oauth_token)
 
