@@ -153,6 +153,9 @@
     "unauthorized": "Unauthorized",
     "bulkDeletePartialFailure": "Some worktrees could not be deleted:",
     "taskNotFoundForWorktree": "Task not found for worktree: {{specName}}",
+    "failedToLoadTaskWorktrees": "Failed to load task worktrees",
+    "failedToLoadWorktrees": "Failed to load worktrees",
+    "failedToDeleteWorktree": "Failed to delete worktree",
     "failedToDeleteTaskWorktree": "Failed to delete task worktree: {{specName}}",
     "terminalWorktreeNotFound": "Terminal worktree not found: {{name}}",
     "failedToDeleteTerminalWorktree": "Failed to delete terminal worktree: {{name}}"
@@ -163,6 +166,7 @@
     "selectProject": "Select a project to view worktrees",
     "noWorktrees": "No Worktrees",
     "noWorktreesDescription": "Worktrees are created automatically when you create tasks or open terminals. Select a project to get started.",
+    "emptyStateDescription": "Worktrees are created automatically when Auto Claude builds features. You can also create terminal worktrees from the Agent Terminals tab.",
     "taskWorktrees": "Task Worktrees",
     "terminalWorktrees": "Terminal Worktrees",
     "filesChanged": "{{count}} files changed",
