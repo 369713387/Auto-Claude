@@ -1,0 +1,41 @@
+{
+  "projectIndex": {
+    "title": "项目结构",
+    "subtitle": "AI 发现的代码库知识",
+    "refreshTooltip": "重新分析项目结构",
+    "loadError": "加载项目索引失败",
+    "noIndexTitle": "未找到项目索引",
+    "noIndexDescription": "点击刷新按钮分析项目结构并创建索引。",
+    "analyzeButton": "分析项目",
+    "overview": "概览",
+    "services": "服务",
+    "infrastructure": "基础设施",
+    "conventions": "约定",
+    "serviceCount": "{{count}} 个服务",
+    "serviceCount_plural": "{{count}} 个服务",
+    "dockerCompose": "Docker Compose",
+    "cicd": "CI/CD",
+    "deployment": "部署",
+    "dockerServices": "Docker 服务",
+    "pythonLinting": "Python 代码检查",
+    "jsLinting": "JS 代码检查",
+    "formatting": "格式化",
+    "gitHooks": "Git 钩子",
+    "typescript": "TypeScript",
+    "enabled": "已启用"
+  },
+  "memoryCard": {
+    "whatWorked": "有效方法",
+    "whatFailed": "失败原因",
+    "approach": "方法",
+    "recommendations": "建议",
+    "patterns": "模式",
+    "gotchas": "注意事项",
+    "changedFiles": "已更改文件",
+    "fileInsights": "文件洞察",
+    "subtasksCompleted": "已完成的子任务",
+    "collapse": "折叠",
+    "expand": "展开",
+    "session": "会话 #{{number}}"
+  }
+}
