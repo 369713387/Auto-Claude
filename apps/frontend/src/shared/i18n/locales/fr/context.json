@@ -1,0 +1,41 @@
+{
+  "projectIndex": {
+    "title": "Structure du Projet",
+    "subtitle": "Connaissances découvertes par l'IA sur votre base de code",
+    "refreshTooltip": "Ré-analyser la structure du projet",
+    "loadError": "Échec du chargement de l'index du projet",
+    "noIndexTitle": "Aucun Index de Projet Trouvé",
+    "noIndexDescription": "Cliquez sur le bouton Actualiser pour analyser la structure de votre projet et créer un index.",
+    "analyzeButton": "Analyser le Projet",
+    "overview": "Vue d'ensemble",
+    "services": "Services",
+    "infrastructure": "Infrastructure",
+    "conventions": "Conventions",
+    "serviceCount": "{{count}} service",
+    "serviceCount_plural": "{{count}} services",
+    "dockerCompose": "Docker Compose",
+    "cicd": "CI/CD",
+    "deployment": "Déploiement",
+    "dockerServices": "Services Docker",
+    "pythonLinting": "Linting Python",
+    "jsLinting": "Linting JS",
+    "formatting": "Formatage",
+    "gitHooks": "Git Hooks",
+    "typescript": "TypeScript",
+    "enabled": "Activé"
+  },
+  "memoryCard": {
+    "whatWorked": "Ce qui a fonctionné",
+    "whatFailed": "Ce qui a échoué",
+    "approach": "Approche",
+    "recommendations": "Recommandations",
+    "patterns": "Motifs",
+    "gotchas": "Pièges",
+    "changedFiles": "Fichiers modifiés",
+    "fileInsights": "Informations sur les fichiers",
+    "subtasksCompleted": "Sous-tâches terminées",
+    "collapse": "Réduire",
+    "expand": "Développer",
+    "session": "Session #{{number}}"
+  }
+}
