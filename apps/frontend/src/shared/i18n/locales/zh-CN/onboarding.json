@@ -63,7 +63,7 @@
       "tokenHint": "完成 OAuth 登录后粘贴终端中显示的令牌。"
     },
     "keychainTitle": "安全存储",
-    "keychainDescription": "您的令牌使用系统钥匙串加密。您可能会看到来自 macOS 的密码提示 — 点击"始终允许"以避免再次看到它。",
+    "keychainDescription": "您的令牌使用系统钥匙串加密。您可能会看到来自 macOS 的密码提示 — 点击\"始终允许\"以避免再次看到它。",
     "toast": {
       "authSuccess": "配置文件认证成功",
       "authSuccessWithEmail": "账户：{{email}}",

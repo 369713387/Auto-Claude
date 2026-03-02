@@ -563,7 +563,7 @@
   "oauth": {
     "enterCode": "手动输入代码（备用）",
     "enterCodeDescription": "此对话框仅在浏览器未自动重定向时需要。如果认证已在浏览器中完成，您可以关闭此对话框。",
-    "fallbackNote": "仅在浏览器中看到"粘贴到 Claude Code"页面时使用此功能。",
+    "fallbackNote": "仅在浏览器中看到\"粘贴到 Claude Code\"页面时使用此功能。",
     "step1": "在浏览器中完成授权",
     "step2": "如果看到代码页面，复制显示的代码",
     "step3": "在下方粘贴代码并点击提交",
