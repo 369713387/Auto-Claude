@@ -86,3 +86,19 @@ Session 3 (Coder - subtask-2-1, 2-2):
 - Updated implementation_plan.json: subtask-2-1, 2-2 marked as completed
 
 === END SESSION 3 ===
+
+Session 4 (Coder - subtask-3-1):
+- Modified apps/backend/core/client.py:
+  - Added import: from core.language import get_output_language, inject_language_constraint
+  - Injected global language constraint into base_prompt construction
+  - Gets output language from project config via get_output_language(project_dir)
+  - Applies inject_language_constraint() to base_prompt after CLAUDE.md content
+  - Added print statement to show configured language during client initialization
+  - Injection point: lines 938-943 (after CLAUDE.md inclusion, before options dict)
+- Verified: Import statement exists at line 25
+- Verified: Language constraint injection at lines 938-943
+- Verified: Syntax and parsing are valid
+- Committed: f10be089
+- Updated implementation_plan.json: subtask-3-1 marked as completed
+
+=== END SESSION 4 ===

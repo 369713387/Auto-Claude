@@ -4,7 +4,7 @@
   "workflow_type": "feature",
   "workflow_rationale": "This is a new feature that adds language configuration capability to the existing agent system. The implementation uses a centralized injection approach that adds language constraints at runtime without modifying core agent logic or tools. The 'sandwich strategy' (injection at both prompt start and end) ensures maximum effectiveness.",
   "created_at": "2026-03-03T10:00:00.000Z",
-  "updated_at": "2026-03-03T03:06:56.592Z",
+  "updated_at": "2026-03-03T03:09:59.691Z",
   "status": "in_progress",
   "phases": [
     {
@@ -139,7 +139,8 @@
             "type": "manual",
             "instructions": "Review core/client.py around lines 892-936. Verify that language constraint is appended to base_prompt after CLAUDE.md content."
           },
-          "status": "pending"
+          "status": "completed",
+          "notes": "Imported get_output_language and inject_language_constraint from core.language module. Added injection after CLAUDE.md content (line 938-943) and added print statement to show configured language. Commit: f10be089"
         }
       ]
     },
