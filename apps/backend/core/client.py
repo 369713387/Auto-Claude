@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from core.fast_mode import ensure_fast_mode_in_user_settings
+from core.language import get_output_language, inject_language_constraint
 from core.platform import (
     is_windows,
     validate_cli_path,
@@ -933,6 +934,12 @@ def create_client(
             print("   - CLAUDE.md: not found in project root")
     else:
         print("   - CLAUDE.md: disabled by project settings")
+
+    # Inject global language constraint
+    # This ensures all SDK interactions inherit the language setting from client initialization
+    output_language = get_output_language(project_dir)
+    base_prompt = inject_language_constraint(base_prompt, output_language)
+    print(f"   - Language constraint: {output_language}")
     print()
 
     # Build options dict, conditionally including output_format
