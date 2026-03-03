@@ -41,6 +41,8 @@ from ui import (
     print_status,
 )
 
+from core.language import get_output_language, inject_language_constraint
+
 from .base import sanitize_error_message
 from .memory_manager import save_session_memory
 from .utils import (
@@ -483,6 +485,11 @@ async def run_agent_session(
     tool_count = 0
 
     try:
+        # Inject language constraint into the prompt
+        output_language = get_output_language(spec_dir)
+        message = inject_language_constraint(message, output_language)
+        debug("session", f"Language constraint applied: {output_language}")
+
         # Send the query
         debug("session", "Sending query to Claude SDK...")
         await client.query(message)
